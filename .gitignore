@@ -1,0 +1,15 @@
+# IntelliJ Rider Files (IDEA)
+.idea/
+
+# build Files
+bin/
+obj/
+
+# config
+
+
+Components/Pages/Test.razor
+Components/Pages/Weather.razor
+Components/Pages/Counter.razor
+
+.Ds_Store

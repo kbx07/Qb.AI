@@ -1,0 +1,56 @@
+@page "/myFilms"
+@using Qb.AI.Models
+
+<h3>Moje filmy</h3>
+
+<p>Poniżej lista moich ulubionych filmów:</p>
+
+<MudTable Items="_movies">
+    <HeaderContent>
+        <MudTh>Tytuł</MudTh>
+        <MudTh>Rok</MudTh>
+        <MudTh>Genre</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Tytuł">@context.Tittle</MudTd>
+        <MudTd DataLabel="Rok">@context.Year</MudTd>
+        <MudTd DataLabel="Genre">@context.Genre</MudTd>
+    </RowTemplate>
+</MudTable>
+
+
+
+@code {
+    
+    // private readonly List<MyMovie> _movies = new List<MyMovie>
+    // {
+    //     new MyMovie("Killer", 1997, "komedia"),
+    //     new MyMovie("Diuna", 2023, "si-fi")
+    // };
+    //
+    
+    private readonly List<Movie> _movies = [];
+    
+    [Inject]
+    public IWebHostEnvironment? Env { get; set; }
+
+    protected override void OnInitialized()
+    {
+        var webRootPath = Env.WebRootPath;
+        var csvPath = Path.Combine(webRootPath, "data", "favourite_movies.csv");
+        var lines = File.ReadAllLines(csvPath);
+
+        for (int i = 1; i < lines.Length; i++)
+        {
+            var line = lines[i];
+            var parts = line.Split(',');
+
+            var title = parts[0].Trim('"');
+            var year = int.Parse(parts[1].Trim());
+            var genre = parts[2].Trim();
+            
+            _movies.Add(new Movie(title, year, genre));
+        }
+    }
+    
+}
