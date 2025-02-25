@@ -6,7 +6,14 @@
 <p>Wprowadź tekst do analizy:</p>
 
 <MudPaper>
-<MudTextField T="string" Label="Tekst do analizy:" @bind-Value="_userText" Lines="3" Class="mt-3" Placeholder="Co chciałbyś zanalizować?"/>
+    <MudTextField T="string"
+                  Label="Tekst do analizy:"
+                  @bind-Value="_userText"
+                  AutoSize="true"
+                  Lines="3"
+                  Class="mt-7"
+                  Style="max-height: 60vh; overflow-y: auto;"
+                  Placeholder="Co chciałbyś zanalizować?"/>
 
 @*<MudSelect T="string" class="mt-3" Style="max-width: 6%" Label="Wybierz model:" @bind-Value="_model">
     @foreach (var item in _avaivableModels)
@@ -27,8 +34,8 @@
 else if (_showResult)
 {
     <MudPaper>
-        <MudText Typo="Typo.h6">Wynik analizy: </MudText>
-        <MudText Typo="Typo.body1">Sentyment: @_sentimentResult </MudText>
+        <MudText Typo="Typo.h5" Class="mt-3 mb-3">Wynik analizy: </MudText>
+        <MudText Typo="Typo.h6" Class="mt-7 mb-7">Sentyment: @_sentimentResult </MudText>
         <MudText>Kluczowe frazy:</MudText>
         <MudList T="string">
             @foreach (var keyPhrase in _keyPhrases)
