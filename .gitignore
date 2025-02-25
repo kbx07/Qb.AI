@@ -15,3 +15,4 @@ Components/Pages/Counter.razor
 .Ds_Store
 
 appsettings.json
+appsettings.Development.json
