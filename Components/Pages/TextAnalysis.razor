@@ -1,0 +1,164 @@
+@page "/textAnalysis"
+@using System.Text.Json
+@using Qb.AI.Models
+<h3>Analiza tekstu (Sentiment, </h3>
+
+<p>Wprowadź tekst do analizy:</p>
+
+<MudPaper>
+<MudTextField T="string" Label="Tekst do analizy:" @bind-Value="_userText" Lines="3" Class="mt-3" Placeholder="Co chciałbyś zanalizować?"/>
+
+@*<MudSelect T="string" class="mt-3" Style="max-width: 6%" Label="Wybierz model:" @bind-Value="_model">
+    @foreach (var item in _avaivableModels)
+    {
+        <MudSelectItem Value="@item">@item</MudSelectItem>
+    }
+</MudSelect>*@
+
+<MudButton Variant="Variant.Filled" Color="Color.Primary" Class="mt-3" @onclick="AnalyzeText"> Analizuj </MudButton>
+</MudPaper>
+
+
+@if(_isLoading)
+{
+    <p class="mt-3">Analizowanie tekstu...</p>
+
+}
+else if (_showResult)
+{
+    <MudPaper>
+        <MudText Typo="Typo.h6">Wynik analizy: </MudText>
+        <MudText Typo="Typo.body1">Sentyment: @_sentimentResult </MudText>
+        <MudText>Kluczowe frazy:</MudText>
+        <MudList T="string">
+            @foreach (var keyPhrase in _keyPhrases)
+            {
+                <MudListItem>@keyPhrase</MudListItem>
+            }
+        </MudList>
+    </MudPaper>
+}
+
+@code {
+    private string _userText = "";
+    private bool _isLoading;
+    private bool _showResult;
+    private string _sentimentResult = "";
+    private List<string> _keyPhrases = new();
+
+    [Inject]
+    public IHttpClientFactory HttpFactory { get; set; }
+
+    private async Task AnalyzeText()
+    {
+        if (string.IsNullOrWhiteSpace(_userText))
+            return;
+
+        _isLoading = true;
+        _showResult = false;
+        _sentimentResult = "";
+        _keyPhrases.Clear();
+
+        var sentiment = await AnalyzeSentiment(_userText);
+        var keyPhrases = await ExtractKeyPhrases(_userText);
+
+        _sentimentResult = sentiment;
+        _keyPhrases = keyPhrases;
+        _isLoading = false;
+        _showResult = true;
+    }
+
+    private async Task<string> AnalyzeSentiment(string text)
+    {
+        try
+        {
+            var requestBody = new AnalyzeTextRequest
+                {
+                    Kind = "SentimentAnalysis",
+                    AnalysisInput = new AnalysisInput
+                    {
+                        Documents = new List<AnalysisDocument>
+                    {
+                        new AnalysisDocument
+                        {
+                            Id = "1",
+                            Language = "pl",
+                            Text = text
+                        }
+                    }
+                    },
+                    Parameters = new Dictionary<string, object>
+                {
+                    { "modelVersion", "latest" },
+                    { "loggingOptOut", false }
+                }
+                };
+
+            var client = HttpFactory.CreateClient("AzureAI");
+
+            var endpoint = "language/:analyze-text?api-version=2024-11-01";
+
+            var response = await client.PostAsJsonAsync(endpoint, requestBody);
+            response.EnsureSuccessStatusCode();
+
+            var responseString = await response.Content.ReadAsStringAsync();
+
+            var analyzeResponse = JsonSerializer.Deserialize<AnalyzeTextResponse>(responseString);
+
+            var doc = analyzeResponse?.Results?.Documents?.FirstOrDefault();
+
+            return doc?.Sentiment ?? "unknown";
+        }
+        catch (Exception ex)
+        {
+            return $"Błąd: {ex.Message}";
+        }
+    }
+
+    private async Task<List<string>> ExtractKeyPhrases(string text)
+    {
+        try
+        {
+            var requestBody = new AnalyzeTextRequest
+            {
+                Kind = "KeyPhraseExtraction",
+                AnalysisInput = new AnalysisInput
+                {
+                    Documents = new List<AnalysisDocument>
+                    {
+                        new AnalysisDocument
+                        {
+                            Id = "1",
+                            Language = "pl",
+                            Text = text
+                        }
+                    }
+                },
+                Parameters = new Dictionary<string, object>
+                {
+                    { "modelVersion", "latest" },
+                    { "loggingOptOut", false }
+                }
+            };
+
+            var client = HttpFactory.CreateClient("AzureAI");
+
+            var endpoint = "language/:analyze-text?api-version=2024-11-01";
+
+            var response = await client.PostAsJsonAsync(endpoint, requestBody);
+            response.EnsureSuccessStatusCode();
+
+            var responseString = await response.Content.ReadAsStringAsync();
+
+            var analyzeResponse = JsonSerializer.Deserialize<AnalyzeTextResponse>(responseString);
+
+            var doc = analyzeResponse?.Results?.Documents?[0];
+
+            return doc?.KeyPhrases ?? new List<string>();
+        }
+        catch (Exception ex)
+        {
+            return new List<string> { $"Błąd: {ex.Message}" };
+        }
+    }
+}

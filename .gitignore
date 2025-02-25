@@ -13,3 +13,5 @@ Components/Pages/Weather.razor
 Components/Pages/Counter.razor
 
 .Ds_Store
+
+appsettings.json

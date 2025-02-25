@@ -1,7 +1,28 @@
+using System.Net.Http.Headers;
 using MudBlazor.Services;
 using Qb.AI.Components;
 
 var builder = WebApplication.CreateBuilder(args);
+
+var openAiApiKey = builder.Configuration["OpenAI:ApiKey"];
+var openAiEndpoint = builder.Configuration["OpenAI:Endpoint"];
+
+var azureApiKey = builder.Configuration["AzureAI:ApiKey"];
+var azureEdnpoint = builder.Configuration["AzureAI:Endpoint"];
+
+builder.Services.AddHttpClient("OpenAI",client =>
+{
+    client.BaseAddress = new Uri(openAiEndpoint);
+    client.DefaultRequestHeaders.Authorization = 
+        new AuthenticationHeaderValue("Bearer", openAiApiKey);
+});
+
+builder.Services.AddHttpClient("AzureAI",client =>
+{
+    client.BaseAddress = new Uri(azureEdnpoint);
+    client.DefaultRequestHeaders.Authorization = 
+        new AuthenticationHeaderValue("Ocp-Apim-Subscription-Key", azureApiKey);
+});
 
 // Add MudBlazor services
 builder.Services.AddMudServices();
