@@ -86,12 +86,11 @@ else if (_showResult)
             var line = lines[i].Trim().Trim('"');
             if (!string.IsNullOrWhiteSpace(line)) _avaivablePrompts.Add(line);
         }
-
-        
     }
 
     private async Task GenerateText()
     {
+        
         if (string.IsNullOrWhiteSpace(_userPrompt))
         return;
             
@@ -108,6 +107,7 @@ else if (_showResult)
     {
         try
         {
+            _isLoadingAzure = true;
             var client = HttpClientFactory.CreateClient("OpenAI");
             
             var requestBody = new
